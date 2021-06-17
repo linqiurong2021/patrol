@@ -1,0 +1,27 @@
+# app配置信息
+app:
+  port: ":8080"
+
+# 数据库配置信息
+postgre:
+  host: "127.0.0.1"
+  user: "postgre"
+  password: "postgre"
+  dbname: "postgis"
+
+# redis 配置信息
+redis:
+  host: "127.0.0.1"
+  port: 6379
+  user: ""
+  password: ""
+  selected: 0
+
+# 注册服务
+register:
+  host: ""
+
+# grpc 端口配置
+grpc:
+  port: ":8081"
+  name: ""

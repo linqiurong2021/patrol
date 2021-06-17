@@ -1,0 +1,88 @@
+syntax="proto3";
+
+option go_package = "./;wechat";
+
+// code 2 session
+message Code2Session {
+  string Code = 1;
+}
+
+// code 2 session request
+message CodeSessionRequest {
+  string Code = 1;
+}
+
+//
+message CodeSessionResponse {
+  string OpenID = 1;
+  string SessionKey = 2;
+}
+
+// 微信错误信息
+message WxErrorResponse {
+  string ExpireAt = 3;
+  int32 ErrorCode = 4;
+  string ErrMsg = 5;
+}
+
+
+//    uint64 UserID = 1;
+
+
+//
+message User {
+
+  string NickName = 2;
+
+  string Avatar = 3;
+
+  uint32 Gender = 4;
+
+  string Province = 5;
+
+  string City = 6;
+
+  string Country = 7;
+
+  string OpenID = 8;
+
+  string Token = 9;
+}
+
+//
+message Code2SessionRequest {
+  string Code = 1;
+}
+
+message Code2SessionResponse {
+  string SessionKey = 1;
+  string OpenID = 2;
+  int32  ErrCode = 4;
+  string ErrMsg = 5;
+}
+
+message LoginRequest {
+  User User = 1;
+}
+
+message LoginResponse {
+  User User = 1;
+}
+
+message GetUserRequest {
+  string Token =1;
+}
+
+message GetUserResponse {
+  User User = 1;
+}
+
+
+service WechatService {
+  // code 2 session
+  rpc Code2Session(Code2SessionRequest) returns (Code2SessionResponse);
+  // create user
+  rpc Login(LoginRequest) returns(LoginResponse);
+  // get user
+  rpc GetUser(GetUserRequest) returns(GetUserResponse);
+}
