@@ -22,7 +22,6 @@ func NewGrpcClient() *GrpcClient{
 	address := conf.Config.Grpc.Port
 	// 拨号
 	conn, err := grpc.Dial(address, grpc.WithInsecure())
-	fmt.Printf("dial grpc server error %s",err)
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}
@@ -34,8 +33,41 @@ func NewGrpcClient() *GrpcClient{
 }
 
 //
-func Login()  {
+func (c *GrpcClient) Login(ctx context.Context ,user *structs.Login)  (*structs.Login, error) {
+
+	reqUser :=  pb.User{
+		Nickname: user.Nickname,
+		OpenID: user.OpenID,
+		Gender: user.Gender,
+		City: user.City,
+		Province: user.Province,
+		Country: user.Country,
+		AvatarUrl: user.AvatarUrl,
+	}
+	fmt.Printf("#login#\n %#v #reqUser \n",&reqUser)
+	// 请求数据
+	req := pb.LoginRequest{
+		User: &reqUser,
+	}
+	log.Printf("Login req params %#v\n",&req)
 	//
+	resp ,err := c.Client.Login(ctx,&req)
+	//
+	fmt.Sprintf("%#v,#########",resp)
+	if err != nil {
+		log.Printf("client login error %s\n", err)
+		return nil ,err
+	}
+	return &structs.Login{
+		Nickname: resp.User.Nickname,
+		OpenID: resp.User.OpenID,
+		Gender: resp.User.Gender,
+		City: resp.User.City,
+		Province: resp.User.Province,
+		Country: resp.User.Country,
+		AvatarUrl: resp.User.AvatarUrl,
+		Token: resp.User.Token,
+	},nil
 }
 
 func (c *GrpcClient) Code2Session(ctx context.Context , code string) (*structs.Code2Session, error)  {

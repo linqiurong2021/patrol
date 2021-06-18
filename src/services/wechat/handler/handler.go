@@ -3,8 +3,8 @@ package handler
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/linqiurong2021/patrol/src/libs"
 	"github.com/linqiurong2021/patrol/src/services/wechat/conf"
+	"github.com/linqiurong2021/patrol/src/services/wechat/libs"
 	"github.com/linqiurong2021/patrol/src/services/wechat/services"
 	"github.com/linqiurong2021/patrol/src/services/wechat/structs"
 	"log"
@@ -72,12 +72,19 @@ func (h *Handler) Login(c *gin.Context)  {
 	if err != nil {
 		result := libs.ValidFailure(nil)
 		c.JSON(200,result)
+		return
 	}
 	fmt.Printf("%#v,request body \n",login)
+	resp, err :=h.Srv.Login(c,&login)
 
-	result := libs.Success("success", login)
-	c.JSON(200, result)
-
+	if err !=nil{
+		msg := fmt.Sprintf("srv.Login error %s",err)
+		result := libs.ServerError(msg,nil)
+		c.JSON(400,result)
+		return
+	}
+	result := libs.Success("success",resp)
+	c.JSON(200,result)
 }
 
 // getUser

@@ -9,13 +9,13 @@ type Code2Session struct {
 
 // 登录
 type Login struct {
-	ID string `json:"id",omitempty`
+	ID string `json:"id,omitempty"`
 	OpenID string `json:"openid"`
 	City string `json:"city"`
 	Province string `json:"province"`
 	Country string `json:"country"`
 	AvatarUrl string `json:"avatar_url"`
 	Nickname string `json:"nickname"`
-	Gender int8 `json:"gender"`
+	Gender uint32 `json:"gender"`
 	Token string `json:"token,omitempty"`
 }

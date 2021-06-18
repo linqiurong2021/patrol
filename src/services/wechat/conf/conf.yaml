@@ -5,9 +5,10 @@ app:
 # 数据库配置信息
 postgre:
   host: "127.0.0.1"
-  user: "postgre"
-  password: "postgre"
+  user: "postgres"
+  password: "postgres"
   dbname: "postgis"
+  port: 5432
 
 # redis 配置信息
 redis:

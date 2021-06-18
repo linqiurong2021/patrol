@@ -32,9 +32,9 @@ message WxErrorResponse {
 //
 message User {
 
-  string NickName = 2;
+  string Nickname = 2;
 
-  string Avatar = 3;
+  string AvatarUrl = 3;
 
   uint32 Gender = 4;
 
