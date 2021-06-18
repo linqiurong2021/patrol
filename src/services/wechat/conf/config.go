@@ -34,7 +34,7 @@ type Redis struct {
 	Port     int32  `yaml:"port"`
 	User     string `yaml:"user"`
 	Password string `yaml:"password"`
-	Selected string `yaml:"selected"`
+	Selected int `yaml:"selected"`
 }
 
 type Register struct {

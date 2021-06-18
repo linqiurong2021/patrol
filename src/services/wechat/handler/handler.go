@@ -3,8 +3,10 @@ package handler
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/linqiurong2021/patrol/src/libs"
 	"github.com/linqiurong2021/patrol/src/services/wechat/conf"
 	"github.com/linqiurong2021/patrol/src/services/wechat/services"
+	"github.com/linqiurong2021/patrol/src/services/wechat/structs"
 	"log"
 )
 
@@ -38,6 +40,9 @@ func RunHttpServer() {
 	address := conf.Config.App.Port
 	fmt.Printf("address %s", address)
 	//
+	//go func() {
+	//	server.NewGrpcServer()
+	//}()
 	gin.Run(address)
 }
 
@@ -46,18 +51,33 @@ func (h *Handler) Code2Session(c *gin.Context)  {
 	code := c.Query("code")
 	if code == "" {
 		// 判断校验
-		c.JSON(400,"code must")
+		result := libs.ValidFailure("code must");
+		c.JSON(200,result)
 	}
 	log.Printf("CODE:%s\n",code)
 	resp, err := h.Srv.Code2Session(c,code)
 	if err !=nil{
-		fmt.Printf("srv.Code2Session error %s", err)
+		msg := fmt.Sprintf("srv.Code2Session error %s",err)
+		result := libs.ServerError(msg,nil)
+		c.JSON(400,result)
 	}
-	c.JSON(200, resp)
+	result := libs.Success("success",resp)
+	c.JSON(200,result)
 }
 // login
-func (h *Handler) Login(ctx *gin.Context)  {
+func (h *Handler) Login(c *gin.Context)  {
 	//
+	var login structs.Login
+	err := c.ShouldBindJSON(&login)
+	if err != nil {
+		result := libs.ValidFailure(nil)
+		c.JSON(200,result)
+	}
+	fmt.Printf("%#v,request body \n",login)
+
+	result := libs.Success("success", login)
+	c.JSON(200, result)
+
 }
 
 // getUser
