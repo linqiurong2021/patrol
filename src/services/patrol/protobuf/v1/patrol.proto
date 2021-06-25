@@ -1,0 +1,73 @@
+syntax="proto3";
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "./;patrol";
+
+// 巡河
+message Patrol {
+  //
+  int64 ID = 1;
+  int64 UserID = 2;
+  string PatrolID = 3;
+  string Line = 4;
+  google.protobuf.Timestamp CreateAt = 5;
+  google.protobuf.Timestamp UpdateAt = 6;
+  string Memo = 8;
+}
+
+message GetPatrolByIDRequest{
+  int64 ID = 1;
+  int64 UserID = 2;
+}
+
+message GetPatrolByIDResponse{
+    Patrol Patrol = 1;
+}
+
+
+message GetPatrolListByUserIDRequest{
+  int64 UserID = 1;
+  int64 Page = 2;
+  int64 PageSize = 3;
+}
+
+message GetPatrolListByUserIDResponse{
+  repeated Patrol Patrol = 1;
+  int64 Count = 2;
+}
+//
+message PostRequest {
+    Patrol Patrol = 1;
+}
+
+message PostResponse{
+  Patrol Patrol = 1;
+}
+
+message DelRequest{
+  int64 ID = 1;
+}
+
+message DelResponse{
+  int64 ID = 1;
+}
+
+message UpdateRequest{
+  int64 ID = 1;
+}
+
+message UpdateResponse{
+  int64 ID = 1;
+}
+
+service PatrolService {
+  //
+  rpc GetPatrol(GetPatrolByIDRequest) returns(GetPatrolByIDResponse);
+  rpc GetPatrolList(GetPatrolListByUserIDRequest) returns(GetPatrolListByUserIDResponse);
+  rpc PostPatrol(PostRequest) returns (PostResponse);
+  rpc DelPatrol(DelRequest) returns (DelResponse);
+  rpc UpdatePatrol(UpdateRequest) returns(UpdateResponse);
+}
+
+

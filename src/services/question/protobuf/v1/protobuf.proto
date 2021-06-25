@@ -1,0 +1,84 @@
+syntax="proto3";
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "./;question";
+
+//
+message Attachment {
+  string Host = 1;
+  string URL = 2;
+}
+
+message Common {
+  int64 ID = 1;
+  int64 UserID = 2;
+  string PatrolID = 3;
+  string RequestID = 4;
+  string Point = 5;
+  google.protobuf.Timestamp CreateAt = 6;
+  google.protobuf.Timestamp UpdateAt = 7;
+  string Memo = 8;
+}
+//
+message Question {
+  Common Common=2;
+  repeated Attachment Attachment = 4;
+}
+
+
+message GetQuestionRequest {
+  int64 UserID = 1;
+  int64 ID = 2;
+}
+//
+message GetQuestionResponse {
+  Question Question = 1;
+}
+
+message GetQuestionListRequest {
+  int64 UserID = 1;
+  int64 ID = 2;
+  int64 Page = 3;
+  int64 PageSize = 4;
+}
+//
+message GetQuestionListResponse {
+  int64  Count = 1;
+  repeated Question Question = 2;
+}
+
+
+
+// 文件上传请求数据
+message UploadRequest {
+  int64 UserID = 1;
+  string RequestID = 2;
+  string PatrolID = 3;
+  repeated bytes FileBytes = 4;
+}
+
+message UploadResponse {
+  int64 ID = 1;
+  string Host = 2;
+  string URL = 3;
+}
+
+message PostRequest{
+    Common Common = 1;
+}
+
+message PostResponse{
+    Common Common = 1;
+}
+
+service QuestionService {
+  // 文件上传
+  rpc UploadFile(UploadRequest) returns (UploadResponse);
+  // 详情
+  rpc GetQuestion(GetQuestionRequest) returns (GetQuestionResponse);
+  // 列表
+  rpc GetQuestionList(GetQuestionListRequest) returns (GetQuestionListResponse);
+  // 提交问题
+  rpc PostQuestion(PostRequest) returns (PostResponse);
+}
