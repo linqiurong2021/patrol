@@ -2,19 +2,78 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/linqiurong2021/patrol/src/services/wechat/conf"
 	"github.com/linqiurong2021/patrol/src/services/wechat/structs"
+	"go.etcd.io/etcd/client/v3"
 	"google.golang.org/grpc"
+
+	pb "github.com/linqiurong2021/patrol/src/services/wechat/protobuf/v1"
 	"log"
-	pb "github.com/linqiurong2021/patrol/src/services/wechat/protof/v1"
+	"time"
 )
 
+type Etcd struct {
+	Client *clientv3.Client
+}
+//
+func NewEtcd(endpoints []string)  *Etcd{
+	//
 
+	cli, err := clientv3.New(clientv3.Config{
+		Endpoints:   endpoints,
+		DialTimeout: 5 * time.Second,
+	})
+	if err != nil {
+		// handle error!
+		log.Fatalf("init etcd client error %s\n", err)
+	}
+	return &Etcd{
+		Client: cli,
+	}
+}
+
+func NewGrpcClient2() *GrpcClient{
+	cli, err := clientv3.NewFromURL(conf.Config.Register.Host)
+	if err !=nil {
+		log.Fatalf("error client v3 newFormURL %s\n", err)
+	}
+	// cli
+	serviceKey := fmt.Sprintf("%s/%s",conf.Config.Grpc.Name,conf.Config.Grpc.Port)
+	fmt.Printf("service Key: %s\n",serviceKey)
+	resp , err := cli.Get(context.TODO(),serviceKey)
+	//
+	var addr []string
+	var service Service
+	for _,item := range resp.Kvs{
+		// 负载均衡
+		err =json.Unmarshal([]byte(item.Value),&service)
+		if err != nil {
+			log.Printf("json unmashal err %s\n", err)
+		}
+		addr = append(addr, service.Addr)
+	}
+	//
+	fmt.Printf("serverAddr: %#v\n",addr[0])
+	// 拨号
+	conn, err := grpc.Dial(addr[0], grpc.WithInsecure() )
+	//if err != nil {
+	//	log.Fatalf("did not connect: %v", err)
+	//}
+	client := pb.NewWechatServiceClient(conn)
+	return  &GrpcClient{
+		Client: client,
+		Connect: conn,
+		//Etcd: etcd,
+	}
+	//return nil
+}
 
 type GrpcClient struct {
 	Client pb.WechatServiceClient
 	Connect *grpc.ClientConn
+	Etcd *Etcd
 }
 
 func NewGrpcClient() *GrpcClient{
@@ -29,6 +88,7 @@ func NewGrpcClient() *GrpcClient{
 	return  &GrpcClient{
 		Client: client,
 		Connect: conn,
+		//Etcd: etcd,
 	}
 }
 

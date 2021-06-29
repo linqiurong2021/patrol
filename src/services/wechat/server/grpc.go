@@ -7,8 +7,9 @@ import (
 	"github.com/linqiurong2021/patrol/src/services/wechat/consts"
 	"github.com/linqiurong2021/patrol/src/services/wechat/libs"
 	"github.com/linqiurong2021/patrol/src/services/wechat/model"
-	pb "github.com/linqiurong2021/patrol/src/services/wechat/protof/v1"
+	pb "github.com/linqiurong2021/patrol/src/services/wechat/protobuf/v1"
 	"github.com/linqiurong2021/patrol/src/services/wechat/structs"
+	clientv3 "go.etcd.io/etcd/client/v3"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"io/ioutil"
@@ -16,6 +17,8 @@ import (
 	"net"
 	"net/http"
 )
+
+var stopSignal chan bool
 
 type GrpcServer struct {
 	Model *model.Model
@@ -33,13 +36,16 @@ func (g *GrpcServer) existsUser(OpenID string) (*model.User, error)  {
 
 func (g *GrpcServer) generateToken(data *model.User) string {
 	// 生成token
-	return libs.NewToken(data.Token);
+	token := libs.NewToken(data.Token)
+	g.cache(token,data)
+	return token
 }
 
 
 func (g *GrpcServer) cache(token string, data *model.User)  {
 	//
-	g.Redis.HSet(token,"id",data.ID)
+	success := g.Redis.HSet(token,"id",data.ID)
+	fmt.Printf("cache id success %t \n",success)
 }
 
 func (g *GrpcServer) GetUserID(token string)   {
@@ -170,13 +176,82 @@ func (g *GrpcServer) Code2Session(ctx context.Context,req *pb.Code2SessionReques
 func (g *GrpcServer)GetUser(ctx context.Context, req *pb.GetUserRequest ) (*pb.GetUserResponse ,  error){
 	return nil,nil
 }
+//
+type Service struct {
+	Addr         string `json:"Addr"`
+	Metadate     string `json:"Metadate"`
+}
+
+func NewGrpcServer2()  {
+	//
+	address := conf.Config.Grpc.Port
+	serviceName := conf.Config.Grpc.Name
+	log.Printf("address: %s\n",address)
+	//
+	cli, err := clientv3.NewFromURL(conf.Config.Register.Host)// "http://localhost:21379"
+	if err !=nil {
+		log.Fatalf("init etcd client error %s\n", err)
+	}
+	//
+	serviceKey := fmt.Sprintf("%s",serviceName)
+	// json
+	service  := Service{
+		Addr: address,
+		Metadate: "...",
+	}
+	bts, err := json.Marshal(service)
+	serviceValue := fmt.Sprintf("%s",bts)
+	// put 进来了 需要监听
+	cli.Put(context.TODO(),serviceKey,serviceValue)
+	// 对注册的服务设置ttl
+
+	// 监听
+	go func() {
+		// 监听数值的变化
+		wc := cli.Watch(context.TODO(), serviceKey, clientv3.WithPrevKV())
+		for v := range wc {
+			for _, e := range v.Events {
+				//
+				fmt.Printf("type:%v kv:%v  prevKey:%v \n ", e.Type, string(e.Kv.Key), e.PrevKv)
+			}
+		}
+	}()
 
 
+
+	// 健康检查
+	// 获取时只返回健康的数据
+	//
+
+	lis, err := net.Listen("tcp", address)
+	if err != nil {
+		log.Fatalf("failed to listen: %v", err)
+	}
+	s := grpc.NewServer()
+	//
+	redisAddress := fmt.Sprintf("%s:%d",conf.Config.Redis.Host,conf.Config.Redis.Port)
+	redis := libs.NewRedis(redisAddress,conf.Config.Redis.Password,conf.Config.Redis.Selected )
+	log.Printf("NewGrpcServer#redisAddress#%s\n",redisAddress)
+	// postgres dataSourceName
+	dataSourceName := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", conf.Config.Postgre.Host, conf.Config.Postgre.Port, conf.Config.Postgre.User, conf.Config.Postgre.Password, conf.Config.Postgre.DBName)
+	log.Printf("NewGrpcServer#dataSourceName#%s\n",dataSourceName)
+	pb.RegisterWechatServiceServer(s, &GrpcServer{
+		Model: model.NewModel(dataSourceName),
+		Redis: redis,
+	})
+
+	if err := s.Serve(lis); err != nil {
+		log.Fatalf("failed to serve: %v", err)
+	}
+
+	fmt.Printf("#Wechat#GrpcServer#Start At# %s",address)
+
+}
 
 // GrpcServer
 func NewGrpcServer()  {
 	//
-	address := ":8081" //conf.Config.Grpc.Port
+	address := conf.Config.Grpc.Port
 	lis, err := net.Listen("tcp", address)
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)

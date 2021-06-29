@@ -14,7 +14,7 @@ type Service struct {
 func NewService() *Service  {
 	// redis
 	return &Service{
-		RpcCli: server.NewGrpcClient(),
+		RpcCli: server.NewGrpcClient2(),
 	}
 }
 // 获取

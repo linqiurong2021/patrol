@@ -20,9 +20,10 @@ redis:
 
 # 注册服务
 register:
-  host: ""
+  # etcd
+  host: "http://localhost:21379"
 
 # grpc 端口配置
 grpc:
-  port: ":8081"
-  name: ""
+  port: "127.0.0.1:8081"
+  name: "wechat"

@@ -41,7 +41,7 @@ func RunHttpServer() {
 	fmt.Printf("address %s", address)
 	//
 	//go func() {
-	//	server.NewGrpcServer()
+	//	server.NewGrpcServer2()
 	//}()
 	gin.Run(address)
 }

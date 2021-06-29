@@ -85,9 +85,10 @@ func (r *Redis) ZCountAll(key string)  {
 
 
 //
-func (r *Redis) HSet(key string, hKey string,hValue interface{})  {
+func (r *Redis) HSet(key string, hKey string,hValue interface{}) bool  {
 	defer r.Conn.Close()
-    r.Conn.HSet(key,hKey,hValue)
+    boolCmd := r.Conn.HSet(key,hKey,hValue)
+    return boolCmd.Val()
 }
 
 //
